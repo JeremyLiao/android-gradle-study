@@ -1,0 +1,21 @@
+task doRunEach << {
+    runEach {
+        println(it)
+    }
+}
+
+def runEach(closure) {
+    for (int i in 1..10) {
+        closure(i)
+    }
+}
+
+task doTestFirstLast {
+    description 'doTestFirstLast task'
+    doFirst {
+        println("this action will run first!")
+    }
+    doLast {
+        println("this action will run last!")
+    }
+}

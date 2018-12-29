@@ -1,0 +1,12 @@
+import org.gradle.internal.jvm.Jvm
+
+apply plugin: 'java'
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.google.auto.service:auto-service:1.0-rc4'
+    compileOnly files(Jvm.current().getToolsJar())
+}
+
+sourceCompatibility = "1.7"
+targetCompatibility = "1.7"
