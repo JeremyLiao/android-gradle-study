@@ -1,9 +1,15 @@
 # 深入浅出Android Gradle
-## 前言
-讲Gradle的文章和书很多，讲Groovy的文章和书也很多，但是在Android中如何使用Gradle和Groovy，感觉没有一篇文章和书能够讲透，总觉得使用起来模模糊糊，云里雾里，是时候好好研究一下Android Gradle了。
+## 为什么写这个？
+讲Gradle的文章和书很多，讲Groovy的文章和书也很多，但是在Android中如何使用Gradle和Groovy，感觉没有一篇文章和书能够讲透，总觉得使用起来模模糊糊，云里雾里。所以，想把平时研究和应用Gradle的一些要点和心得记录下来，既是方便自己，也是方便大家。
+- [x] 仓库中的工程是为了方便我经常调试和研究Gradle所搭建，可能有点乱，仅做参考。
+- [x] README中记录了我学习和研究Gradle的一些要点和心得，持续更新中...
 
-## 写在最前
-有些人觉得gradle文件看起来很痛苦，看不懂。其实gradle既是脚本，也是代码。可以像脚本那些执行，而且每一行脚本，都可以理解成执行了相应的对象中的一个方法。但是由于闭包的存在使得有些代码的执行顺序跟定义的顺序不一致。
+## Gradle是什么
+“Gradle is an open-source build automation system that builds upon the concepts of Apache Ant and Apache Maven and introduces a Groovy-based domain-specific language (DSL) instead of the XML form used by Apache Maven for declaring the project configuration.[1] Gradle uses a directed acyclic graph ("DAG") to determine the order in which tasks can be run.”——维基百科对Gradle的定义。
+
+翻译过来就是：“Gradle是一个基于Apache Ant和Apache Maven概念的项目自动化构建开源工具。它使用一种基于Groovy的特定领域语言(DSL)来声明项目设置，抛弃了基于XML的各种繁琐配置。”
+
+还是很难懂。难怪有些人觉得gradle文件看起来很痛苦，看不懂。我的理解是：gradle既是脚本，也是代码。可以像脚本那些执行，而且每一行脚本，都可以理解成执行了相应的对象中的一个方法。但是由于闭包的存在使得有些代码的执行顺序跟定义的顺序不一致。这样一来，Gradle写起来和读起来都像配置文件，实际上是一系列代码，要以代码的角度来阅读和编写Gradle。这样一来，Gradle就要好理解得多。
 
 ## AS中的Gradle Build Script
 1. 工程根目录下的setting.gradle和build.gradle
