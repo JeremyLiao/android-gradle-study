@@ -1,5 +1,7 @@
 package com.jeremyliao.plugin;
 
+import com.android.build.gradle.BaseExtension;
+
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -19,5 +21,7 @@ public class AgsJavaPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         System.out.println(TAG + project);
+        BaseExtension baseExtension = project.getExtensions().findByType(BaseExtension.class);
+        System.out.println(TAG + baseExtension);
     }
 }

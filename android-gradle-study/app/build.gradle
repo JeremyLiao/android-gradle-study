@@ -1,10 +1,11 @@
 println("App build.gradle: " + project)
 
 apply plugin: 'com.android.application'
-apply plugin: 'ags-java-plugin'
 buildscript {
-    apply plugin: 'ags-groovy-plugin'
+    apply plugin: 'ags-classpath-plugin'
 }
+apply plugin: 'ags-groovy-plugin'
+apply plugin: 'ags-java-plugin'
 apply plugin: 'ags-test-plugin'
 apply plugin: 'com.jakewharton.butterknife'
 
