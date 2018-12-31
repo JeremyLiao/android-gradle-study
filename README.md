@@ -335,3 +335,318 @@ uploadArchives {
 }
 ```
 这个时候AS的gradle面板会多一个uploadArchives任务，执行这个任务便可以把plugin上传到工程根目录的repo目录下。
+
+## android-apt和annotationProcessor
+### 作用
+APT(Annotation Processing Tool)是一种处理注释的工具,它对源代码文件进行检测找出其中的Annotation，对这些Annotation进行处理。常用的处理方式包括根据这些注解自动生成一些java源文件或者java class文件。
+### android-apt
+android-apt是annotationProcessor出现之前的apt框架。要使用android-apt需要添加如下的代码：
+#### 添加android-apt到Project下的build.gradle中
+
+```
+//配置在Project下的build.gradle中
+buildscript {
+    repositories {
+      mavenCentral()
+    }
+    dependencies {
+        classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
+    }
+}
+```
+#### 在Module中build.gradle的配置（以dagger为例）
+
+```
+apply plugin: 'com.neenbedankt.android-apt'
+
+dependencies {
+    apt 'com.squareup.dagger:dagger-compiler:1.1.0'
+}
+```
+### annotationProcessor
+annotationProcessor也是一种APT工具，他是google开发的内置框架，不需要引入，可以直接在module的build.gradle文件中使用（以butterknife为例）：
+
+```
+dependencies {
+    annotationProcessor 'com.jakewharton:butterknife-compiler:8.4.0'
+}
+```
+### 自定义注解处理器
+创建一个java module，编写一个类，继承AbstractProcessor。并且重写其中的process方法：
+
+```java
+public class MyProcessor extends AbstractProcessor {
+
+    @Override
+    public synchronized void init(ProcessingEnvironment processingEnvironment) {
+        super.init(processingEnvironment);
+        ...
+    }
+
+    @Override
+    public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnvironment) {
+        ...
+        return true;
+    }
+    
+    @Override
+    public Set getSupportedAnnotationTypes() {
+        Set annotataions = new LinkedHashSet();
+        annotataions.add(MyAnnotation.class.getCanonicalName());
+        return annotataions;
+    }
+    
+    @Override
+    public SourceVersion getSupportedSourceVersion() {
+        return SourceVersion.latestSupported();
+    }
+}
+```
+#### Export Processor
+有两种方法Export Processor：
+##### 手动暴露
+1. 在 processors 库的 main 目录下新建 resources 资源文件夹
+2. 在 resources文件夹下建立 META-INF/services 目录文件夹
+3. 在 META-INF/services 目录文件夹下创建 javax.annotation.processing.Processor 文件
+4. 在 javax.annotation.processing.Processor 文件写入注解处理器的全称，包括包路径
+
+##### 使用AutoService
+AutoService注解处理器是Google开发的，用来生成 META-INF/services/javax.annotation.processing.Processor 文件的，你只需要在你定义的注解处理器上添加 @AutoService(Processor.class) 就可以了，简直不能再方便了。
+- [x] 添加依赖
+
+```
+dependencies {
+    implementation 'com.google.auto.service:auto-service:1.0-rc2'
+}
+```
+- [x] 用@AutoService注解Processor
+
+```java
+@AutoService(Processor.class)
+public class MyProcessor extends AbstractProcessor {
+    // ...
+}
+```
+
+## Transform
+### Transform用来干嘛
+还是那句话，研究任何一个新技术之前都要先弄明白这个技术是用来干嘛的，不然就毫无意义。
+
+前面介绍了Plugin，但是apply plugin是发生在配置阶段，还没有涉及到真正的构建过程。如果我们想在构建过程中做一些事，比如我们想拿到编译时产生的Class文件，并在生成Dex之前做一些处理。
+
+Transform就是用来应对这种场景的。
+
+### 另外一种处理方式
+Transform API 是在1.5.0-beta1版开始使用的。在此之前，如果我们想拿到编译时产生的Class文件，并在生成Dex之前做一些处理，常用的方式是注册project的afterEvaluate方法，在这个方法中拿到一些构建过程中的task，并在这个task中注入一些action来完成：
+
+```
+project.afterEvaluate {
+    System.out.println(TAG + "execute afterEvaluate: " + project)
+    def extension = project.extensions.findByType(AppExtension.class)
+    extension.applicationVariants.all { variant ->
+        String variantName = capitalize(variant.getName())
+        Task mergeJavaResTask = project.tasks.findByName(
+                "transformResourcesWithMergeJavaResFor" + variantName)
+        System.out.println(TAG + "mergeJavaResTask: " + mergeJavaResTask)
+        mergeJavaResTask.doLast {
+            System.out.println(TAG + "mergeJavaResTask.doLast execute")
+        }
+    }
+}
+```
+
+### 使用Transform
+#### 定义Transform
+自定义Transform，继承自Transform类：
+
+```
+class AgsTransform extends Transform {
+
+    final String TAG = "[AgsTransform]"
+
+    @Override
+    void transform(TransformInvocation transformInvocation) throws TransformException, InterruptedException, IOException {
+        System.out.println(TAG + "start transform")
+        super.transform(transformInvocation)
+    }
+
+    @Override
+    String getName() {
+        return AgsTransform.simpleName
+    }
+
+    @Override
+    Set<QualifiedContent.ContentType> getInputTypes() {
+        return TransformManager.CONTENT_CLASS
+    }
+
+    @Override
+    Set<? super QualifiedContent.Scope> getScopes() {
+        return TransformManager.SCOPE_FULL_PROJECT
+    }
+
+    @Override
+    boolean isIncremental() {
+        return false
+    }
+}
+```
+
+##### 输入的类型
+
+```
+@Override
+Set<QualifiedContent.ContentType> getInputTypes() {
+    return TransformManager.CONTENT_CLASS
+}
+```
+输入类型有两种，CLASSES和RESOURCES，在DefaultContentType指定：
+
+```
+enum DefaultContentType implements ContentType {
+    /**
+     * The content is compiled Java code. This can be in a Jar file or in a folder. If
+     * in a folder, it is expected to in sub-folders matching package names.
+     */
+    CLASSES(0x01),
+
+    /** The content is standard Java resources. */
+    RESOURCES(0x02);
+
+    private final int value;
+
+    DefaultContentType(int value) {
+        this.value = value;
+    }
+
+    @Override
+    public int getValue() {
+        return value;
+    }
+}
+```
+TransformManager中定义了一系列的类型集合：
+
+```
+public static final Set<ContentType> CONTENT_CLASS = ImmutableSet.of(CLASSES);
+public static final Set<ContentType> CONTENT_JARS = ImmutableSet.of(CLASSES, RESOURCES);
+public static final Set<ContentType> CONTENT_RESOURCES = ImmutableSet.of(RESOURCES);
+public static final Set<ContentType> CONTENT_NATIVE_LIBS =
+        ImmutableSet.of(NATIVE_LIBS);
+public static final Set<ContentType> CONTENT_DEX = ImmutableSet.of(ExtendedContentType.DEX);
+public static final Set<ContentType> DATA_BINDING_ARTIFACT =
+        ImmutableSet.of(ExtendedContentType.DATA_BINDING);
+public static final Set<ContentType> DATA_BINDING_BASE_CLASS_LOG_ARTIFACT =
+        ImmutableSet.of(ExtendedContentType.DATA_BINDING_BASE_CLASS_LOG);
+```
+
+##### 输入文件所属的范围
+
+```
+@Override
+Set<? super QualifiedContent.Scope> getScopes() {
+    return TransformManager.SCOPE_FULL_PROJECT
+}
+```
+getScopes()用来指明自定的Transform的输入文件所属的范围, 定义在Scope中:
+
+```
+enum Scope implements ScopeType {
+    /** Only the project content */
+    PROJECT(0x01),
+    /** Only the sub-projects. */
+    SUB_PROJECTS(0x04),
+    /** Only the external libraries */
+    EXTERNAL_LIBRARIES(0x10),
+    /** Code that is being tested by the current variant, including dependencies */
+    TESTED_CODE(0x20),
+    /** Local or remote dependencies that are provided-only */
+    PROVIDED_ONLY(0x40),
+
+    /**
+     * Only the project's local dependencies (local jars)
+     *
+     * @deprecated local dependencies are now processed as {@link #EXTERNAL_LIBRARIES}
+     */
+    @Deprecated
+    PROJECT_LOCAL_DEPS(0x02),
+    /**
+     * Only the sub-projects's local dependencies (local jars).
+     *
+     * @deprecated local dependencies are now processed as {@link #EXTERNAL_LIBRARIES}
+     */
+    @Deprecated
+    SUB_PROJECTS_LOCAL_DEPS(0x08);
+
+    private final int value;
+
+    Scope(int value) {
+        this.value = value;
+    }
+
+    @Override
+    public int getValue() {
+        return value;
+    }
+}
+```
+同样，TransformManager中定义了一系列的Scope集合：
+
+```
+public static final Set<ScopeType> PROJECT_ONLY = ImmutableSet.of(Scope.PROJECT);
+public static final Set<Scope> SCOPE_FULL_PROJECT =
+        Sets.immutableEnumSet(
+                Scope.PROJECT,
+                Scope.SUB_PROJECTS,
+                Scope.EXTERNAL_LIBRARIES);
+public static final Set<ScopeType> SCOPE_FULL_WITH_IR_FOR_DEXING =
+        new ImmutableSet.Builder<ScopeType>()
+                .addAll(SCOPE_FULL_PROJECT)
+                .add(InternalScope.MAIN_SPLIT)
+                .build();
+public static final Set<ScopeType> SCOPE_FULL_LIBRARY_WITH_LOCAL_JARS =
+        ImmutableSet.of(Scope.PROJECT, InternalScope.LOCAL_DEPS);
+```
+
+##### 重写transform方法
+我们可以通过TransformInvocation来获取输入，也可以获取输出的功能：
+
+```
+@Override
+void transform(TransformInvocation transformInvocation) throws TransformException, InterruptedException, IOException {
+    System.out.println(TAG + "start transform")
+    super.transform(transformInvocation)
+    //处理输入
+    System.out.println(TAG + "处理输入")
+    for (TransformInput input : transformInvocation.inputs) {
+        input.jarInputs.parallelStream().forEach(new Consumer<JarInput>() {
+            @Override
+            void accept(JarInput jarInput) {
+                File file = jarInput.getFile()
+                JarFile jarFile = new JarFile(file)
+                Enumeration<JarEntry> entries = jarFile.entries()
+                while (entries.hasMoreElements()) {
+                    JarEntry entry = entries.nextElement()
+                    System.out.println(TAG + "JarEntry: " + entry)
+                }
+            }
+        })
+    }
+    //处理输出
+    System.out.println(TAG + "处理输出")
+    File dest = transformInvocation.outputProvider.getContentLocation(
+            "output_name",
+            TransformManager.CONTENT_CLASS,
+            TransformManager.PROJECT_ONLY,
+            Format.DIRECTORY)
+}
+```
+
+#### 注册Transform
+在Plugin中注册：
+
+```
+def extension = project.extensions.findByType(AppExtension.class)
+System.out.println(TAG + extension)
+extension.registerTransform(new AgsTransform())
+```
