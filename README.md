@@ -1,8 +1,8 @@
-# 深入浅出Android Gradle
+# 30分钟搞懂Android Gradle
 ## 为什么写这个？
 讲Gradle的文章和书很多，讲Groovy的文章和书也很多，但是在Android中如何使用Gradle和Groovy，感觉没有一篇文章和书能够讲透，总觉得使用起来模模糊糊，云里雾里。所以，想把平时研究和应用Gradle的一些要点和心得记录下来，既是方便自己，也是方便大家。
+- [x] 会持续更新学习和研究Gradle的一些要点和心得，力求让你从根本上搞懂Android Gradle，不求大而全，但求精。也许你在别处找不到的答案，在这里可以找到呢。
 - [x] 仓库中的工程是为了方便我经常调试和研究Gradle所搭建，可能有点乱，仅做参考。
-- [x] README中记录了我学习和研究Gradle的一些要点和心得，持续更新中...
 
 ## Gradle是什么
 “Gradle is an open-source build automation system that builds upon the concepts of Apache Ant and Apache Maven and introduces a Groovy-based domain-specific language (DSL) instead of the XML form used by Apache Maven for declaring the project configuration.[1] Gradle uses a directed acyclic graph ("DAG") to determine the order in which tasks can be run.”——维基百科对Gradle的定义。
