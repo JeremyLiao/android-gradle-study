@@ -650,3 +650,81 @@ def extension = project.extensions.findByType(AppExtension.class)
 System.out.println(TAG + extension)
 extension.registerTransform(new AgsTransform())
 ```
+
+## extension
+extension用于向你的Plugin中传入一些配置信息，使用起来很简单。
+### 创建Bean
+创建一个存放配置信息的bean：
+
+```
+public class DemoExtension {
+
+    private boolean enable;
+    private String message;
+
+    public boolean isEnable() {
+        return enable;
+    }
+
+    public void setEnable(boolean enable) {
+        this.enable = enable;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("enable=").append(enable).append(";");
+        sb.append("message=").append(message).append(";");
+        return sb.toString();
+    }
+}
+```
+### 在Plugin中create extension
+
+```
+DemoExtension extension = project.getExtensions().create("demoConfig", DemoExtension.class);
+```
+### 在build.gradle中进行配置
+
+```
+demoConfig {
+    enable = true
+    message = 'hello world'
+}
+```
+
+### 使用extension的一个坑
+完成以上步骤之后，就可以使用extension了，但是extension有个坑，就是如果create之后立即使用，这个时候bean里面是默认值，也就是说build.gradle中的信息还没有加载进去，需要在整个gradle配置完成之后bean中才会填充上相应的值：
+
+```
+final DemoExtension extension = project.getExtensions().create("demoConfig", DemoExtension.class);
+System.out.println(TAG + "extension: " + extension);
+project.afterEvaluate(new Action<Project>() {
+    @Override
+    public void execute(Project project) {
+        System.out.println(TAG + "extension afterEvaluate: " + extension);
+    }
+});
+```
+这样一来，如果你有些信息是需要在配置阶段读取到的，就不适合使用extension了。
+
+### 使用properties
+有些时候我们的配置信息是写在extension里面的，但是如果要在plugin中读取这些配置信息，需要在脚本Evaluate之后，如果要在配置的时候就使用配置信息，最常用的办法就是使用properties：
+在build.gradle平级的位置建立一个名为gradle.properties的文件，里面是配置信息，如：
+
+```
+testProperty=hello
+```
+然后在Plugin的代码中用如下方式读取：
+
+```
+String testProperty = (String) project.property("testProperty");
+```
