@@ -1,6 +1,7 @@
 package com.jeremyliao.plugin;
 
 import com.android.build.gradle.BaseExtension;
+import com.jeremyliao.plugin.extension.DemoExtension;
 
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
@@ -23,5 +24,18 @@ public class AgsJavaPlugin implements Plugin<Project> {
         System.out.println(TAG + project);
         BaseExtension baseExtension = project.getExtensions().findByType(BaseExtension.class);
         System.out.println(TAG + baseExtension);
+
+        final DemoExtension extension = project.getExtensions().create("demoConfig", DemoExtension.class);
+        System.out.println(TAG + "extension: " + extension);
+
+        String testProperty = (String) project.property("testProperty");
+        System.out.println(TAG + "testProperty: " + testProperty);
+
+        project.afterEvaluate(new Action<Project>() {
+            @Override
+            public void execute(Project project) {
+                System.out.println(TAG + "extension afterEvaluate: " + extension);
+            }
+        });
     }
 }

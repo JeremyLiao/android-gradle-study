@@ -9,6 +9,11 @@ apply plugin: 'ags-java-plugin'
 apply plugin: 'ags-test-plugin'
 apply plugin: 'com.jakewharton.butterknife'
 
+demoConfig {
+    enable = true
+    message = 'hello world'
+}
+
 android {
     compileSdkVersion 28
     defaultConfig {
