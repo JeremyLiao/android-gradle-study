@@ -1,0 +1,12 @@
+import java.text.SimpleDateFormat
+
+
+def getTimeStamp() {
+    SimpleDateFormat sdf = new SimpleDateFormat("\"yyyy'.'MM'.'dd'-'HH':'mm':'ss\"")
+    sdf.setTimeZone(TimeZone.getTimeZone("GMT+08:00"))
+    return sdf.format(new Date())
+}
+
+ext {
+    getTimeStamp = this.&getTimeStamp
+}

@@ -12,6 +12,7 @@ apply plugin: 'ags-groovy-plugin'
 apply plugin: 'ags-java-plugin'
 apply plugin: 'ags-test-plugin'
 apply plugin: 'com.jakewharton.butterknife'
+apply from: rootProject.file('tools.gradle')
 
 demoConfig {
     enable = true
@@ -76,3 +77,4 @@ project.android.applicationVariants.all { variant ->
 
 println("app build.gradle getScriptClassPath: " + project.buildscript.getScriptClassPath())
 println("root_project_ext_pro in module: " + root_project_ext_pro)
+println("getTimeStamp: " + getTimeStamp())
