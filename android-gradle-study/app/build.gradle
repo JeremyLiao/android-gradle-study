@@ -1,5 +1,9 @@
 println("App build.gradle: " + project)
 
+ext {
+    ext_pro = 'hello'
+}
+
 apply plugin: 'com.android.application'
 buildscript {
     apply plugin: 'ags-classpath-plugin'
@@ -12,6 +16,7 @@ apply plugin: 'com.jakewharton.butterknife'
 demoConfig {
     enable = true
     message = 'hello world'
+    strings = ['a', 'b']
 }
 
 android {
@@ -70,3 +75,4 @@ project.android.applicationVariants.all { variant ->
 }
 
 println("app build.gradle getScriptClassPath: " + project.buildscript.getScriptClassPath())
+println("root_project_ext_pro in module: " + root_project_ext_pro)

@@ -1,7 +1,6 @@
 include ':app', ':compiler', ':plugin', ':plugin1'
 
 println("setting.gradle: " + settings)
-
 gradle.beforeProject {
     project ->
         println("beforeProject: " + project)
@@ -10,3 +9,9 @@ gradle.afterProject {
     project ->
         println("afterProject: " + project)
 }
+
+ext {
+    setting_ext_pro = 'hello'
+}
+
+println("setting_ext_pro: " + setting_ext_pro)

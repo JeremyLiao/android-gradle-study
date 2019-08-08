@@ -13,7 +13,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.2.1'
-        classpath "com.jeremyliao.gradle:plugin:0.0.2"
+        classpath "com.jeremyliao.gradle:plugin:0.0.4"
 //        classpath "com.jeremyliao.gradle:plugin1:0.0.1"
 //        classpath 'com.jakewharton:butterknife-gradle-plugin:9.0.0-rc3'
         println("Root build.gradle --> buildscript --> dependencies")
@@ -60,3 +60,9 @@ task doSomethingAfterAssemble {
 apply from: 'groovy_test.gradle'
 
 println("Root build.gradle getScriptClassPath: " + project.buildscript.getScriptClassPath())
+
+ext {
+    root_project_ext_pro = 'hello'
+}
+
+println("root_project_ext_pro: " + root_project_ext_pro)

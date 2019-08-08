@@ -32,7 +32,7 @@ targetCompatibility = "1.7"
 
 //打包到本地或者远程Maven库
 group = 'com.jeremyliao.gradle'
-version = '0.0.2'
+version = '0.0.4'
 
 uploadArchives {
     repositories {

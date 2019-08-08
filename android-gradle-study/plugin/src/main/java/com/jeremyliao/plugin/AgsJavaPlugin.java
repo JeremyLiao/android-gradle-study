@@ -6,11 +6,6 @@ import com.jeremyliao.plugin.extension.DemoExtension;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.initialization.dsl.ScriptHandler;
-import org.gradle.api.internal.initialization.DefaultScriptHandler;
-
-import groovy.lang.Closure;
 
 /**
  * Created by liaohailiang on 2018/12/26.
@@ -30,6 +25,9 @@ public class AgsJavaPlugin implements Plugin<Project> {
 
         String testProperty = (String) project.property("testProperty");
         System.out.println(TAG + "testProperty: " + testProperty);
+
+        Object ext_pro = project.property("ext_pro");
+        System.out.println(TAG + "ext_pro: " + ext_pro);
 
         project.afterEvaluate(new Action<Project>() {
             @Override
