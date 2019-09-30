@@ -13,7 +13,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.2.1'
-        classpath "com.jeremyliao.gradle:plugin:0.0.4"
+        classpath "com.jeremyliao.gradle:plugin:0.0.1"
 //        classpath "com.jeremyliao.gradle:plugin1:0.0.1"
 //        classpath 'com.jakewharton:butterknife-gradle-plugin:9.0.0-rc3'
         println("Root build.gradle --> buildscript --> dependencies")
@@ -42,15 +42,18 @@ task clean(type: Delete) {
     delete rootProject.buildDir
 }
 
-task doNothing {
+task doNothing(group: 'demo') {
     description 'task doNothing'
     println("config task doNothing")
+    afterEvaluate {
+        println 'doNothing afterEvaluate'
+    }
     doLast {
         println "execute task doNothing"
     }
 }
 
-task doSomethingAfterAssemble {
+task doSomethingAfterAssemble(group: 'demo') {
     doLast {
         println "execute task doSomethingAfterAssemble"
     }

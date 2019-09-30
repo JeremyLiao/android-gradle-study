@@ -11,6 +11,7 @@ buildscript {
 apply plugin: 'ags-groovy-plugin'
 apply plugin: 'ags-java-plugin'
 apply plugin: 'ags-test-plugin'
+apply plugin: 'dependency-plugin'
 apply plugin: 'com.jakewharton.butterknife'
 apply from: rootProject.file('tools.gradle')
 
@@ -72,6 +73,24 @@ project.android.applicationVariants.all { variant ->
         field.setAccessible(true)
         version = field.get(null)
         System.out.println("[TEST]" + "22version: " + version)
+    }
+}
+
+project.android.applicationVariants.all { variant ->
+    System.out.println("[DEPENDENCY]" + "variant: " + variant.name)
+    project.configurations.each { Configuration configuration ->
+//        System.out.println("[DEPENDENCY]" + "configuration: " + configuration)
+        if (configuration.name.toLowerCase().contains("${variant.name}runtimeclasspath")) {
+            configuration.incoming.resolutionResult.root.dependencies.each { DependencyResult dr ->
+                System.out.println("[DEPENDENCY]" + "DependencyResult: " + dr)
+                if (dr instanceof ResolvedDependencyResult) {
+                    def rdr = (ResolvedDependencyResult) dr
+                    rdr.selected.dependencies.each { DependencyResult dependencyResult ->
+                        System.out.println("[DEPENDENCY]" + "DependencyResult: " + dependencyResult)
+                    }
+                }
+            }
+        }
     }
 }
 
