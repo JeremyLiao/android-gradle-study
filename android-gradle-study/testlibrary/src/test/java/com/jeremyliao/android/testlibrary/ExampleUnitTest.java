@@ -1,4 +1,4 @@
-package com.jeremyliao.gradle;
+package com.jeremyliao.android.testlibrary;
 
 import org.junit.Test;
 

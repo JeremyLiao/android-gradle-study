@@ -2,17 +2,9 @@ package com.jeremyliao.plugin
 
 import com.android.build.gradle.AppExtension
 import com.jeremyliao.transform.AgsTransform
-import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.internal.artifacts.DefaultArtifactRepositoryContainer
-import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
-import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
-import org.gradle.api.internal.initialization.DefaultScriptHandler
-
 
 /**
  * Created by liaohailiang on 2018/12/26.
@@ -24,13 +16,16 @@ class AgsGroovyPlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
         System.out.println(TAG + project)
-        testSystemProperty(project)
+        addNewTask(project)
         configAfterEvaluate(project)
         addTransform(project)
     }
 
-    private void testSystemProperty(Project project) {
-        System.out.println(TAG + System.getProperty("foo"))
+    private void addNewTask(Project project) {
+        //添加一个新的task
+        project.task('group': 'demo', 'demo') << {
+            System.out.println(TAG + "execute task demo")
+        }
     }
 
     private void configAfterEvaluate(Project project) {

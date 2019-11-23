@@ -1,4 +1,4 @@
-include ':app', ':compiler', ':plugin', ':plugin1'
+include ':app', ':compiler', ':plugin', ':plugin1', ':testlibrary'
 
 println("setting.gradle: " + settings)
 gradle.beforeProject {

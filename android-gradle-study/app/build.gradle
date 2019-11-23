@@ -6,12 +6,13 @@ ext {
 
 apply plugin: 'com.android.application'
 buildscript {
-    apply plugin: 'ags-classpath-plugin'
+    apply plugin: 'classpath-plugin'
 }
 apply plugin: 'ags-groovy-plugin'
 apply plugin: 'ags-java-plugin'
 apply plugin: 'ags-test-plugin'
 apply plugin: 'dependency-plugin'
+apply plugin: 'property-read-plugin'
 apply plugin: 'com.jakewharton.butterknife'
 apply from: rootProject.file('tools.gradle')
 
@@ -54,12 +55,9 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.android.support:appcompat-v7:28.0.0'
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
-
-    implementation 'com.jakewharton:butterknife:9.0.0-rc3'
-    annotationProcessor 'com.jakewharton:butterknife-compiler:9.0.0-rc3'
+    implementation 'com.jakewharton:butterknife:9.0.0'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:9.0.0'
+    implementation project(path: ':testlibrary')
 }
 
 
@@ -76,23 +74,23 @@ project.android.applicationVariants.all { variant ->
     }
 }
 
-project.android.applicationVariants.all { variant ->
-    System.out.println("[DEPENDENCY]" + "variant: " + variant.name)
-    project.configurations.each { Configuration configuration ->
+//project.android.applicationVariants.all { variant ->
+//    System.out.println("[DEPENDENCY]" + "variant: " + variant.name)
+//    project.configurations.each { Configuration configuration ->
 //        System.out.println("[DEPENDENCY]" + "configuration: " + configuration)
-        if (configuration.name.toLowerCase().contains("${variant.name}runtimeclasspath")) {
-            configuration.incoming.resolutionResult.root.dependencies.each { DependencyResult dr ->
-                System.out.println("[DEPENDENCY]" + "DependencyResult: " + dr)
-                if (dr instanceof ResolvedDependencyResult) {
-                    def rdr = (ResolvedDependencyResult) dr
-                    rdr.selected.dependencies.each { DependencyResult dependencyResult ->
-                        System.out.println("[DEPENDENCY]" + "DependencyResult: " + dependencyResult)
-                    }
-                }
-            }
-        }
-    }
-}
+//        if (configuration.name.toLowerCase().contains("${variant.name}runtimeclasspath")) {
+//            configuration.incoming.resolutionResult.root.dependencies.each { DependencyResult dr ->
+//                System.out.println("[DEPENDENCY]" + "DependencyResult: " + dr)
+//                if (dr instanceof ResolvedDependencyResult) {
+//                    def rdr = (ResolvedDependencyResult) dr
+//                    rdr.selected.dependencies.each { DependencyResult dependencyResult ->
+//                        System.out.println("[DEPENDENCY]" + "DependencyResult: " + dependencyResult)
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
 
 println("app build.gradle getScriptClassPath: " + project.buildscript.getScriptClassPath())
 println("root_project_ext_pro in module: " + root_project_ext_pro)

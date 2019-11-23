@@ -1,18 +1,19 @@
 package com.jeremyliao.plugin
 
-import com.jeremyliao.transform.AgsTransform
+
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
 
 /**
  * Created by liaohailiang on 2018/12/26.
+ * 动态添加classpath的例子
  */
-class AgsClasspathPlugin implements Plugin<Project> {
+class DynamicClasspathPlugin implements Plugin<Project> {
 
-    final String TAG = "[AgsClasspathPlugin]"
+    final String TAG = "[DynamicClasspathPlugin]"
     final String BUTTERKNIFE_PLUGIN_NAME = "com.jakewharton:butterknife-gradle-plugin:%s"
     final String PLUGIN1_NAME = "com.jeremyliao.gradle:plugin1:%s"
+    final String USER_REPOSITORIES = null
 
     @Override
     void apply(Project project) {
@@ -28,21 +29,25 @@ class AgsClasspathPlugin implements Plugin<Project> {
         System.out.println(TAG + "rootClassPath: " + rootClassPath)
 
         project.buildscript {
+            //添加repo
             project.buildscript.repositories {
-                def rootRepositories = project.rootProject.buildscript.repositories
-                System.out.println(TAG + "rootRepositories: " + rootRepositories)
-                DefaultRepositoryHandler handler = project.buildscript.repositories
-                handler.addAll(rootRepositories)
+                //如果需要，添加自定义的repo
+                if (USER_REPOSITORIES != null && USER_REPOSITORIES.length() > 0) {
+                    project.buildscript.repositories.maven {
+                        url USER_REPOSITORIES
+                    }
+                }
+                //把root project中的repo添加进来
+                project.buildscript.repositories.addAll(project.rootProject.buildscript.repositories)
             }
+            //添加classpath
             project.buildscript.dependencies {
-                def butterknifePlugin = sprintf(BUTTERKNIFE_PLUGIN_NAME,
-                        props.getProperty("BUTTERKNIFE_PLUGIN_VERSION"))
-                def plugins1 = sprintf(PLUGIN1_NAME,
-                        props.getProperty("PLUGIN1_VERSION"))
-                System.out.println(TAG + "butterknifePlugin: " + butterknifePlugin)
-                System.out.println(TAG + "plugins1: " + plugins1)
+                //动态添加两个classpath
+                def butterknifePlugin = sprintf(BUTTERKNIFE_PLUGIN_NAME, props.getProperty("BUTTERKNIFE_PLUGIN_VERSION"))
+                def plugins1 = sprintf(PLUGIN1_NAME, props.getProperty("PLUGIN1_VERSION"))
                 project.buildscript.dependencies.classpath(butterknifePlugin)
                 project.buildscript.dependencies.classpath(plugins1)
+                //添加完之后，还要把root project中的classpath添加进来
                 getRootDependencies(project).all {
                     dependency ->
                         def classpath = sprintf("%s:%s:%s", dependency.group, dependency.name, dependency.version)

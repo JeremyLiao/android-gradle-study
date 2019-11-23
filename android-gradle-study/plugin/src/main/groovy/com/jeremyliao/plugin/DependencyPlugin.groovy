@@ -1,14 +1,11 @@
 package com.jeremyliao.plugin
 
-import com.android.build.gradle.AppExtension
-import com.jeremyliao.transform.AgsTransform
+
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.result.DependencyResult
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
-import org.gradle.api.artifacts.result.UnresolvedDependencyResult
 
 /**
  * Created by liaohailiang on 2018/12/26.
@@ -16,50 +13,81 @@ import org.gradle.api.artifacts.result.UnresolvedDependencyResult
 class DependencyPlugin implements Plugin<Project> {
 
     final String TAG = "[DependencyPlugin]"
-
-    final LinkedList<DependencyResult> dependencyStack = new LinkedList<>();
+    final List<String> whiteList = new ArrayList<>()
 
     @Override
     void apply(Project project) {
-        project.task('group': 'demo', 'dependency') << {
-            project.android.applicationVariants.all { variant ->
-                System.out.println(TAG + "variant: " + variant.name)
-                System.out.println("*******************Dependency Result Start*******************")
-                project.configurations.each { Configuration configuration ->
-                    if (configuration.name.toLowerCase().contains("${variant.name}runtimeclasspath")) {
-                        configuration.incoming.resolutionResult.root.dependencies.each { DependencyResult dr ->
-                            checkDependency(dr)
-                        }
+        project.android.applicationVariants.all { variant ->
+            println(TAG + "variant: " + variant.name)
+            whiteList.clear()
+            whiteList.addAll(project.rootProject.file('white_list.prop').readLines())
+            project.configurations.each { Configuration configuration ->
+                if (configuration.name.toLowerCase().contains("${variant.name}runtimeclasspath")) {
+                    configuration.incoming.resolutionResult.root.dependencies.each { DependencyResult dr ->
+                        boolean accept = acceptDependency(new Dependency(dr, null))
+                        println(TAG + dr.requested.displayName + " : " + accept)
                     }
                 }
-                System.out.println("*******************Dependency Result End*******************")
             }
         }
     }
 
-    private void checkDependency(DependencyResult dr) {
-        if (dr instanceof UnresolvedDependencyResult) {
-        } else if (dr instanceof ResolvedDependencyResult) {
+    private boolean acceptDependency(Dependency dependency) {
+        def dr = dependency.dependencyResult
+        if (accept(dr)) {
+            return true
+        }
+        if (dr instanceof ResolvedDependencyResult) {
             def rdr = (ResolvedDependencyResult) dr
-            def size = rdr.selected.dependencies.size()
-            if (size > 0) {
-                dependencyStack.push(dr)
-                rdr.selected.dependencies.each { DependencyResult dependencyResult ->
-                    checkDependency(dependencyResult)
+            def dependencies = rdr.selected.dependencies
+            if (dependencies.size() > 0) {
+                for (def dep : dependencies) {
+                    def accept = acceptDependency(new Dependency(dep, dependency))
+                    if (!accept) {
+                        return false
+                    }
                 }
-                dependencyStack.pop()
-            } else {
-                printDependency(dr)
+                return true
             }
         }
+        println(TAG + "Not accept: " + getDependencyPath(dependency))
+        return false
     }
 
-    private void printDependency(DependencyResult dr) {
-        StringBuilder stringBuilder = new StringBuilder()
-        for (DependencyResult result : dependencyStack) {
-            stringBuilder.append(result.requested.displayName).append("/")
+    private boolean accept(DependencyResult dr) {
+        def name = dr.requested.displayName
+        for (String dependency : whiteList) {
+            if (name == dependency) {
+                return true
+            }
         }
-        stringBuilder.append(dr.requested.displayName)
-        System.out.println(stringBuilder.toString())
+        return false
+    }
+
+    private String getDependencyPath(Dependency dependency) {
+        List<String> strings = new ArrayList<>()
+        Dependency current = dependency
+        while (current != null) {
+            strings.add(0, current.dependencyResult.requested.displayName)
+            current = current.previousDependency
+        }
+        StringBuilder sb = new StringBuilder()
+        for (int i = 0; i < strings.size(); i++) {
+            sb.append(strings.get(i))
+            if (i < strings.size() - 1) {
+                sb.append(" --> ")
+            }
+        }
+        return sb.toString();
+    }
+
+    static class Dependency {
+        final DependencyResult dependencyResult
+        final Dependency previousDependency
+
+        Dependency(DependencyResult dependencyResult, Dependency previousDependency) {
+            this.dependencyResult = dependencyResult
+            this.previousDependency = previousDependency
+        }
     }
 }

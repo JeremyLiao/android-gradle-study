@@ -1,18 +1,7 @@
 package com.jeremyliao.transform
 
-import com.android.build.api.transform.Context
-import com.android.build.api.transform.Format
-import com.android.build.api.transform.JarInput
-import com.android.build.api.transform.QualifiedContent
-import com.android.build.api.transform.Transform
-import com.android.build.api.transform.TransformException
-import com.android.build.api.transform.TransformInput
-import com.android.build.api.transform.TransformInvocation
-import com.android.build.api.transform.TransformOutputProvider
+import com.android.build.api.transform.*
 import com.android.build.gradle.internal.pipeline.TransformManager
-import org.gradle.api.Plugin
-import org.gradle.api.Project
-import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
 
 import java.util.function.Consumer
 import java.util.jar.JarEntry
@@ -40,7 +29,7 @@ class AgsTransform extends Transform {
                     Enumeration<JarEntry> entries = jarFile.entries()
                     while (entries.hasMoreElements()) {
                         JarEntry entry = entries.nextElement()
-                        System.out.println(TAG + "JarEntry: " + entry)
+//                        System.out.println(TAG + "JarEntry: " + entry)
                     }
                 }
             })
